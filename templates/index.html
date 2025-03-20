@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Home - {% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto p-4 space-y-6">
+    {% for post in posts %}
+    <div class="bg-white border rounded-lg shadow-sm overflow-hidden">
+        <!-- Post Header -->
+        <div class="p-4 flex items-center">
+            <a href="{{ url_for('profile', username=post.author.username) }}" class="flex items-center">
+                <img src="{{ url_for('static', filename='img/uploads/' + post.author.profile_pic) }}" 
+                     alt="{{ post.author.username }}" 
+                     class="h-8 w-8 rounded-full">
+                <span class="ml-2 font-medium">{{ post.author.username }}</span>
+            </a>
+            <span class="ml-auto text-sm text-gray-500">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+
+        <!-- Post Content -->
+        <div class="relative">
+            <div class="aspect-square relative">
+                <a href="{{ url_for('post_detail', post_id=post.id) }}">
+                    {% if post.is_video %}
+                    <video class="w-full h-full object-cover">
+                        <source src="{{ url_for('static', filename='img/uploads/' + post.image) }}" type="video/mp4">
+                    </video>
+                    {% else %}
+                    <img src="{{ url_for('static', filename='img/uploads/' + post.image) }}" 
+                         alt="Post by {{ post.author.username }}" 
+                         class="w-full h-full object-cover">
+                    {% endif %}
+                    {% if post.vulgarity_score > 0.5 %}
+                    <div class="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                        <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+
+        <!-- Post Actions -->
+        <div class="p-4">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <form action="{{ url_for('like_post', post_id=post.id) }}" method="POST" class="inline">
+                        <button type="submit" class="text-gray-500 hover:text-red-500 focus:outline-none">
+                            <svg class="h-6 w-6" fill="{% if post.is_liked_by(current_user) %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                        </button>
+                    </form>
+                    <span class="text-sm text-gray-500">{{ post.get_likes_count() }}</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <form action="{{ url_for('dislike_post', post_id=post.id) }}" method="post" class="inline">
+                        <button type="submit" class="text-gray-500 hover:text-red-500 transition-colors flex items-center">
+                            <svg class="w-6 h-6 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                            </svg>
+                            <span class="ml-1 text-sm">{{ post.get_dislikes_count() }}</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Post Caption -->
+        {% if post.caption %}
+        <div class="px-4">
+            <p class="text-sm">
+                <a href="{{ url_for('profile', username=post.author.username) }}" class="font-medium">{{ post.author.username }}</a>
+                {{ post.caption|safe }}
+            </p>
+        </div>
+        {% endif %}
+
+        <!-- Comments Section -->
+        <div class="px-4 py-3 border-t">
+            <div class="space-y-3">
+                <!-- Comments List -->
+                {% for comment in post.comments[:3] %}
+                <div class="flex items-start space-x-3">
+                    <a href="{{ url_for('profile', username=comment.user.username) }}" class="flex-shrink-0">
+                        <img src="{{ url_for('static', filename='img/uploads/' + comment.user.profile_pic) }}" 
+                             alt="{{ comment.user.username }}" 
+                             class="h-6 w-6 rounded-full">
+                    </a>
+                    <div class="flex-1">
+                        <div class="bg-gray-50 rounded-lg px-3 py-2">
+                            <a href="{{ url_for('profile', username=comment.user.username) }}" class="font-medium text-sm hover:underline">
+                                {{ comment.user.username }}
+                            </a>
+                            <span class="text-sm text-gray-700">{{ comment.content }}</span>
+                        </div>
+                        <div class="flex items-center space-x-2 mt-1">
+                            <span class="text-xs text-gray-500">{{ comment.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+                            <div class="flex items-center space-x-1">
+                                <form action="{{ url_for('like_comment', comment_id=comment.id) }}" method="POST" class="inline">
+                                    <button type="submit" class="text-gray-500 hover:text-red-500 focus:outline-none">
+                                        <svg class="h-4 w-4" fill="{% if comment.is_liked_by(current_user) %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                        </svg>
+                                    </button>
+                                </form>
+                                <span class="text-xs text-gray-500">{{ comment.get_likes_count() }}</span>
+                                <form action="{{ url_for('dislike_comment', comment_id=comment.id) }}" method="post" class="inline">
+                                    <button type="submit" class="text-gray-500 hover:text-red-500 transition-colors flex items-center">
+                                        <svg class="w-5 h-5 transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                                        </svg>
+                                        <span class="ml-1 text-xs">{{ comment.get_dislikes_count() }}</span>
+                                    </button>
+                                </form>
+                            </div>
+                            {% if current_user == comment.user %}
+                            <form action="{{ url_for('delete_comment', comment_id=comment.id) }}" method="POST" class="inline">
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-xs">
+                                    Delete
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% if post.comments|length > 3 %}
+                <a href="{{ url_for('post_detail', post_id=post.id) }}" class="text-sm text-gray-500 hover:text-gray-700">
+                    View all {{ post.comments|length }} comments
+                </a>
+                {% endif %}
+
+                <!-- Comment Form -->
+                {% if current_user.is_authenticated %}
+                <form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST" class="flex items-center space-x-2">
+                    {{ form.csrf_token }}
+                    <div class="flex-1 relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                        </div>
+                        {{ form.content(class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-full focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-sm placeholder-gray-400", placeholder="Write a comment...") }}
+                        {% if form.content.errors %}
+                        <div class="text-red-500 text-xs mt-1">
+                            {% for error in form.content.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 text-sm font-medium transition-colors duration-200">
+                        Post
+                    </button>
+                </form>
+                {% else %}
+                <p class="text-sm text-gray-500">
+                    <a href="{{ url_for('login') }}" class="text-indigo-600 hover:text-indigo-700">Login</a> to comment
+                </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Content Analysis -->
+        <div class="px-4 py-3 border-t">
+            <div class="flex items-center space-x-2">
+                <div class="w-3 h-3 rounded-full 
+                    {% if post.content_category == 'safe' %}bg-green-500
+                    {% elif post.content_category == 'mild' %}bg-yellow-500
+                    {% elif post.content_category == 'moderate' %}bg-orange-500
+                    {% else %}bg-red-500{% endif %}">
+                </div>
+                <span class="text-sm text-gray-600">
+                    Content Category: {{ post.content_category|title }}
+                    (Vulgarity Score: {{ "%.1f"|format(post.vulgarity_score * 100) }}%)
+                </span>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <p class="text-gray-600">No posts yet. Follow some users or create your first post!</p>
+        <a href="{{ url_for('create_post') }}" 
+            class="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+            Create Post
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %} 

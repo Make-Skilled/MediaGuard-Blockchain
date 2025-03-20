@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}{{ user.username }}'s Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4">
+    <div class="bg-white rounded-lg shadow p-6">
+        <!-- Profile Header -->
+        <div class="flex items-center space-x-6 mb-8">
+            <img src="{{ url_for('static', filename='img/uploads/' + user.profile_pic) }}" 
+                 alt="{{ user.username }}" 
+                 class="w-32 h-32 rounded-full">
+            <div>
+                <h1 class="text-2xl font-bold">{{ user.username }}</h1>
+                {% if user.bio %}
+                <p class="text-gray-600 mt-2">{{ user.bio }}</p>
+                {% endif %}
+                <div class="flex space-x-4 mt-4">
+                    <a href="{{ url_for('followers', username=user.username) }}" class="text-gray-600 hover:text-gray-900">
+                        <span class="font-semibold">{{ user.followers.count() }}</span> followers
+                    </a>
+                    <a href="{{ url_for('following', username=user.username) }}" class="text-gray-600 hover:text-gray-900">
+                        <span class="font-semibold">{{ user.following.count() }}</span> following
+                    </a>
+                </div>
+                {% if current_user.is_authenticated and current_user != user %}
+                    {% if user in current_user.following %}
+                    <form action="{{ url_for('unfollow_user', username=user.username) }}" method="POST" class="mt-4">
+                        <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300">
+                            Unfollow
+                        </button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('follow_user', username=user.username) }}" method="POST" class="mt-4">
+                        <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600">
+                            Follow
+                        </button>
+                    </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Posts Grid -->
+        {% if posts %}
+        <div class="grid grid-cols-3 gap-4">
+            {% for post in posts %}
+            <a href="{{ url_for('post_detail', post_id=post.id) }}" class="relative group">
+                {% if post.is_video %}
+                <video class="w-full h-64 object-cover rounded-lg" muted>
+                    <source src="{{ url_for('static', filename='img/uploads/' + post.image) }}" type="video/mp4">
+                </video>
+                {% else %}
+                <img src="{{ url_for('static', filename='img/uploads/' + post.image) }}" 
+                     alt="{{ post.caption }}" 
+                     class="w-full h-64 object-cover rounded-lg">
+                {% endif %}
+                <div class="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-opacity duration-200 rounded-lg flex items-center justify-center">
+                    <div class="text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div class="flex items-center space-x-4">
+                            <span><i class="fas fa-heart"></i> {{ post.get_likes_count() }}</span>
+                            <span><i class="fas fa-comment"></i> {{ post.comments|length }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <p class="text-gray-600 text-lg">No posts yet</p>
+            {% if current_user == user %}
+            <a href="{{ url_for('create_post') }}" 
+               class="mt-4 inline-block bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                Create Post
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

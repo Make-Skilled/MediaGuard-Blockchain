@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-4">
+    <div class="bg-white rounded-lg shadow p-6">
+        <h1 class="text-2xl font-bold mb-6">Search Results</h1>
+        
+        {% if query %}
+            <p class="text-gray-600 mb-4">Searching for "{{ query }}"</p>
+        {% endif %}
+
+        {% if users %}
+            <div class="space-y-4">
+                {% for user in users %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-4">
+                        <a href="{{ url_for('profile', username=user.username) }}">
+                            <img src="{{ url_for('static', filename='img/uploads/' + user.profile_pic) }}" 
+                                 alt="{{ user.username }}" 
+                                 class="w-12 h-12 rounded-full">
+                        </a>
+                        <div>
+                            <a href="{{ url_for('profile', username=user.username) }}" 
+                               class="font-medium hover:underline">
+                                {{ user.username }}
+                            </a>
+                            {% if user.bio %}
+                            <p class="text-sm text-gray-600">{{ user.bio[:100] }}{% if user.bio|length > 100 %}...{% endif %}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if current_user.is_authenticated and current_user != user %}
+                        {% if user in current_user.following %}
+                        <form action="{{ url_for('unfollow_user', username=user.username) }}" method="POST">
+                            <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300">
+                                Unfollow
+                            </button>
+                        </form>
+                        {% else %}
+                        <form action="{{ url_for('follow_user', username=user.username) }}" method="POST">
+                            <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600">
+                                Follow
+                            </button>
+                        </form>
+                        {% endif %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                {% if query %}
+                    <p class="text-gray-600">No users found matching your search.</p>
+                {% else %}
+                    <p class="text-gray-600">Enter a search term to find users.</p>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

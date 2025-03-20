@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Blocked Users - Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto p-4">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-900">Blocked Users</h1>
+        <a href="{{ url_for('admin_dashboard') }}" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+            Back to Dashboard
+        </a>
+    </div>
+    
+    {% if blocked_users %}
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Violations</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Blocked Since</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unblock Request</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for user in blocked_users %}
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <img src="{{ url_for('static', filename='img/uploads/' + user.profile_pic) }}" 
+                                     alt="{{ user.username }}" 
+                                     class="h-8 w-8 rounded-full">
+                                <div class="ml-4">
+                                    <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
+                                    <div class="text-sm text-gray-500">{{ user.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
+                                {{ user.violation_count }} violations
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {{ user.blocked_at.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            {% if user.unblock_request %}
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Requested on {{ user.unblock_request_date.strftime('%Y-%m-%d %H:%M') }}
+                            </span>
+                            {% else %}
+                            <span class="text-sm text-gray-500">No request</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-sm font-medium">
+                            <a href="{{ url_for('analyze_user', user_id=user.id) }}" 
+                               class="text-indigo-600 hover:text-indigo-900 inline-block"
+                               onclick="return confirm('This will analyze the user\'s posts, remove any with high vulgarity scores, and unblock the user. Continue?')">
+                                Analyze & Unblock
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-8">
+        <p class="text-gray-600">No blocked users found.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 
