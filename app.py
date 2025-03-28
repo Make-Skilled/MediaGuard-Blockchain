@@ -704,14 +704,24 @@ def analyze_user(user_id):
 @login_required
 def request_unblock():
     if current_user.is_blocked:
-        if blockchain.request_unblock(current_user.wallet_address):
+        # First check if user is blocked on blockchain
+        user_status = blockchain.get_user_status(current_user.wallet_address)
+        if user_status and user_status['is_blocked']:
+            if blockchain.request_unblock(current_user.wallet_address):
+                if current_user.request_unblock():
+                    db.session.commit()
+                    flash('Unblock request submitted successfully', 'success')
+                else:
+                    flash('You already have a pending unblock request', 'warning')
+            else:
+                flash('Failed to submit unblock request on blockchain', 'error')
+        else:
+            # If user is blocked in database but not on blockchain, just update database
             if current_user.request_unblock():
                 db.session.commit()
                 flash('Unblock request submitted successfully', 'success')
             else:
                 flash('You already have a pending unblock request', 'warning')
-        else:
-            flash('Failed to submit unblock request on blockchain', 'error')
     else:
         flash('Your account is not blocked', 'info')
     return redirect(url_for('profile', username=current_user.username))

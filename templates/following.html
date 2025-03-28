@@ -10,31 +10,31 @@
         {% for follow in following %}
         <div class="flex items-center justify-between bg-white p-4 rounded-lg shadow">
             <div class="flex items-center space-x-4">
-                <a href="{{ url_for('profile', username=follow.followed.username) }}">
-                    <img src="{{ url_for('static', filename='img/uploads/' + follow.followed.profile_pic) }}" 
-                         alt="{{ follow.followed.username }}" 
+                <a href="{{ url_for('profile', username=follow.username) }}">
+                    <img src="{{ url_for('static', filename='img/uploads/' + follow.profile_pic) }}" 
+                         alt="{{ follow.username }}" 
                          class="w-12 h-12 rounded-full">
                 </a>
                 <div>
-                    <a href="{{ url_for('profile', username=follow.followed.username) }}" 
+                    <a href="{{ url_for('profile', username=follow.username) }}" 
                        class="font-medium hover:underline">
-                        {{ follow.followed.username }}
+                        {{ follow.username }}
                     </a>
-                    {% if follow.followed.bio %}
-                    <p class="text-sm text-gray-600">{{ follow.followed.bio[:100] }}{% if follow.followed.bio|length > 100 %}...{% endif %}</p>
+                    {% if follow.bio %}
+                    <p class="text-sm text-gray-600">{{ follow.bio[:100] }}{% if follow.bio|length > 100 %}...{% endif %}</p>
                     {% endif %}
                 </div>
             </div>
             
-            {% if current_user.is_authenticated and current_user != follow.followed %}
-                {% if current_user.following.filter_by(followed_id=follow.followed.id).first() %}
-                <form action="{{ url_for('unfollow_user', username=follow.followed.username) }}" method="POST">
+            {% if current_user.is_authenticated and current_user != follow %}
+                {% if follow in current_user.following %}
+                <form action="{{ url_for('unfollow_user', username=follow.username) }}" method="POST">
                     <button type="submit" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300">
                         Unfollow
                     </button>
                 </form>
                 {% else %}
-                <form action="{{ url_for('follow_user', username=follow.followed.username) }}" method="POST">
+                <form action="{{ url_for('follow_user', username=follow.username) }}" method="POST">
                     <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600">
                         Follow
                     </button>

@@ -18,7 +18,7 @@ UPLOAD_DIR = 'uploads'
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # Authenticate with Hugging Face
-HF_TOKEN = ""
+HF_TOKEN = "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"
 login(token=HF_TOKEN)
 
 class ContentAnalyzer:
